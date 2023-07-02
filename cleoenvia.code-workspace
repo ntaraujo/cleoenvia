@@ -1,0 +1,16 @@
+{
+	"folders": [
+		{
+			"name": "cleoenvia",
+			"path": "."
+		},
+		{
+			"name": "cleo",
+			"path": "../cleo"
+		},
+		{
+			"path": "../pyinstaller"
+		}
+	],
+	"settings": {}
+}
