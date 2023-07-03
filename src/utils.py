@@ -67,7 +67,7 @@ def save_cache(name, data):
 
 
 def load_cache(file_name, default):
-    cache_path = os.path.join(cache_dir, file_name)
+    cache_path = os.path.join(cache_dir, f"{file_name}.pkl")
     if not os.path.exists(cache_path):
         return default
     with open(cache_path, "rb") as f:
@@ -80,6 +80,8 @@ compiled = getattr(sys, "frozen", False)
 def path(file):
     return os.path.join(sys._MEIPASS, file) if compiled else file
 
+
+# TODO try to substitute by https://github.com/chriskiehl/Gooey/issues/665
 
 old_print = builtins.print
 
@@ -103,14 +105,16 @@ builtins.print = new_print
 
 def send_to_clipboard(data, clip_type="text"):
     win32clipboard.OpenClipboard()
-    win32clipboard.EmptyClipboard()
-    
-    if clip_type == "text":
-        clip_type = win32clipboard.CF_UNICODETEXT
-    elif clip_type == "image":
-        clip_type = win32clipboard.CF_DIB
-    win32clipboard.SetClipboardData(clip_type, data)
-    win32clipboard.CloseClipboard()
+    try:
+        win32clipboard.EmptyClipboard()
+
+        if clip_type == "text":
+            clip_type = win32clipboard.CF_UNICODETEXT
+        elif clip_type == "image":
+            clip_type = win32clipboard.CF_DIB
+        win32clipboard.SetClipboardData(clip_type, data)
+    finally:
+        win32clipboard.CloseClipboard()
 
 
 debugger_active = getattr(sys, "gettrace", lambda: None)() is not None
@@ -118,7 +122,7 @@ if debugger_active:
     print("Rodando em modo de depuração")
 
 
-def retry(func, exc=Exception, times=3, wait=1, on_debug=False):
+def retry(func, exc=Exception, times=2, wait=1, on_debug=False):
     if not on_debug and debugger_active:
         return func
 
