@@ -30,7 +30,12 @@ def valid_contacts(contacts_file):
         ]
 
         for row in csv_reader:
-            name = row["Name"]
+            name = row["Given Name"]
+            if row["Additional Name"]:
+                name += " " + row["Additional Name"]
+            if row["Family Name"]:
+                name += " " + row["Family Name"]
+
             phones = [
                 sub("[^0-9]", "", num)
                 for key in phone_keys
