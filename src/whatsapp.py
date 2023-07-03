@@ -123,9 +123,18 @@ class WhatsApp:
     @retry
     def search_input(self, text):
         xpath_search_input = r'//*[@id="side"]/div[1]/div/div/div[2]/div/div[1]/p'
+
         element_search_input = self.find_and_click(xpath_search_input)
+
+        if input_length := len(element_search_input.text):
+            self.actions.send_keys(Keys.BACKSPACE * input_length)
+            self.actions.perform()
+            element_search_input = self.find_and_click(xpath_search_input)
+
         self.actions.send_keys_to_element(element_search_input, text)
         self.actions.perform()
+
+        assert element_search_input.text == text
 
     @class_exc_waiting
     @retry
@@ -155,12 +164,21 @@ class WhatsApp:
 
         element_input_message_only.send_keys(Keys.CONTROL, "v")
 
+        xpath_one_image_preview_container = r'//*[@id="app"]/div/div/div[3]/div[2]/span/div/span/div/div/div[2]/div/div[2]/div[1]/div[count(child::*) = 1]'
+
+        self.check(xpath_one_image_preview_container)
+
     @class_exc_waiting
     @retry
     def paste_image_description(self, text):
         xpath_input_image_description = r'//*[@id="app"]/div/div/div[3]/div[2]/span/div/span/div/div/div[2]/div/div[1]/div[3]/div/div/div[2]/div[1]/div[1]/p'
 
         element_input_image_description = self.check(xpath_input_image_description)
+
+        if input_length := len(element_input_image_description.text):
+            self.actions.send_keys(Keys.BACKSPACE * input_length)
+            self.actions.perform()
+            element_input_image_description = self.check(xpath_input_image_description)
 
         send_to_clipboard(text)
 
@@ -172,3 +190,5 @@ class WhatsApp:
         xpath_send_button = r'//*[@id="app"]/div/div/div[3]/div[2]/span/div/span/div/div/div[2]/div/div[2]/div[2]/div/div'
 
         self.find_and_click(xpath_send_button)
+
+        self.check(xpath_send_button)
