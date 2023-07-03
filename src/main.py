@@ -73,16 +73,26 @@ def main():
     contacts = valid_contacts(args.ArquivoContatos)
 
     wpp = WhatsApp()
-    
+
     wpp.start()
 
     wpp.set_image_data(args.Imagem)
 
     sent_contact_names = load_cache("sent_contact_names", set())
     continuation = args.Continuação == "Sim"
+    if continuation:
+        print(
+            "Os seguintes contatos tiveram mensagens enviadas na última execução e não serão considerados nesta: ",
+            " ".join(sent_contact_names),
+        )
 
     failed_contact_phones = load_cache("failed_contact_phones", set())
     try_wrong = args.TentarErrados == "Sim"
+    if try_wrong:
+        print(
+            "Os seguintes números falharam em alguma execução e serão considerados novamente: ",
+            " ".join(failed_contact_phones),
+        )
 
     for contact in contacts:
         name = contact["name"]
@@ -97,7 +107,9 @@ def main():
                     except Exception as e:
                         failed_contact_phones.add(phone)
                         save_cache("failed_contact_phones", failed_contact_phones)
-                        print(f"Não foi possível enviar a mensagem para '{name}' através do número ({phone})")
+                        print(
+                            f"Não foi possível enviar a mensagem para '{name}' através do número ({phone})"
+                        )
                         # raise e  # for debug
 
     save_cache("sent_contact_names", set())

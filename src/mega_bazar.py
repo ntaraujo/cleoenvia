@@ -10,8 +10,10 @@ def encode(word):
     return ascii_name.upper()
 
 
-def filter_names(person):
+def filter_names(person):  # sourcery skip: remove-unreachable-code
     encoded_names = encode(person).split()
+
+    # return encoded_names[0], True  # for debug
 
     return encoded_names[0], ("MANANCIAL" in encoded_names) or (
         "PR" in encoded_names and "TONINHO" in encoded_names
