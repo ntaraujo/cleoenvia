@@ -6,6 +6,8 @@ import contextlib
 import sys
 import builtins
 import pickle
+import win32clipboard
+import time
 
 _current_progress = 0
 _total_progress = 0
@@ -83,3 +85,38 @@ def new_print(*values, **kwargs):
 
 
 builtins.print = new_print
+
+
+def send_to_clipboard(data, clip_type=None):
+    win32clipboard.OpenClipboard()
+    win32clipboard.EmptyClipboard()
+    if clip_type is None:
+        win32clipboard.SetClipboardText(data)
+    elif clip_type == "image":
+        win32clipboard.SetClipboardData(clip_type, data)
+    else:
+        raise NotImplementedError(f"clip_type {clip_type} not implemented")
+    win32clipboard.CloseClipboard()
+
+
+debugger_active = getattr(sys, "gettrace", lambda: None)() is not None
+if debugger_active:
+    print("Rodando em modo de depuração")
+
+
+def retry(func, exc=Exception, times=3, wait=1, on_debug=False):
+    if not on_debug and debugger_active:
+        return func
+
+    def new_func(*args, **kwargs):
+        for t in range(times):
+            try:
+                return func(*args, **kwargs)
+            except exc as e:
+                print(f"Erro suprimido. Tentando novamente. ({t+1}/{times})")
+                if debugger_active:
+                    print(f"\n{type(e).__name__}\n{e}")
+                time.sleep(wait)
+        return func(*args, **kwargs)
+
+    return new_func
