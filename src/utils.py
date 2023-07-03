@@ -1,9 +1,11 @@
+from collections import defaultdict
 import appdirs
 import os
 import json
 import contextlib
 import sys
 import builtins
+import pickle
 
 _current_progress = 0
 _total_progress = 0
@@ -36,7 +38,7 @@ def add_progress(progress=1):
 
 
 config_dir = appdirs.user_config_dir("cleoenvia")
-config_path = os.path.join(config_dir, "config.json")
+config_path = os.path.join(config_dir, "config.pkl")
 
 
 cache_dir = appdirs.user_cache_dir("cleoenvia")
@@ -44,15 +46,16 @@ cache_dir = appdirs.user_cache_dir("cleoenvia")
 
 def save_config(config):
     os.makedirs(config_dir, exist_ok=True)
-    with open(config_path, "w") as f:
-        json.dump(config, f)
+    with open(config_path, "wb") as f:
+        pickle.dump(config, f)
 
 
 def load_config():
     if os.path.exists(config_path):
         with contextlib.suppress(json.JSONDecodeError):
-            with open(config_path, "r") as f:
-                return json.load(f)
+            with open(config_path, "rb") as f:
+                return pickle.load(f)
+    return defaultdict(str)
 
 
 compiled = getattr(sys, "frozen", False)

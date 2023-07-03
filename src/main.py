@@ -1,5 +1,6 @@
 from gooey import Gooey, GooeyParser, local_resource_path
 import signal
+from utils import save_config, load_config
 
 
 @Gooey(
@@ -24,10 +25,24 @@ import signal
     },
 )
 def main():
-    parser = GooeyParser(description="Vamos enviar sua mensagem ( ＾◡＾ )")
-    args = parser.parse_args()
+    config = load_config()
 
-    print("Código aqui")
+    parser = GooeyParser(description="Vamos enviar sua mensagem ( ＾◡＾ )")
+    parser.add_argument(
+        "ArquivoContatos", widget="FileChooser", default=config["ArquivoContatos"]
+    )
+    parser.add_argument("Imagem", widget="FileChooser", default=config["Imagem"])
+    # TODO workaround for emoji in the end getting lost
+    parser.add_argument("Texto", widget="Textarea", default=config["Texto"])
+    args = parser.parse_args()
+    
+    config["ArquivoContatos"] = args.ArquivoContatos
+    config["Imagem"] = args.Imagem
+    config["Texto"] = args.Texto
+    
+    save_config(config)
+
+    print(args.Texto)
 
 
 if __name__ == "__main__":
