@@ -8,6 +8,7 @@ import builtins
 import pickle
 import win32clipboard
 import time
+import random
 
 _current_progress = 0
 _total_progress = 0
@@ -118,5 +119,25 @@ def retry(func, exc=Exception, times=3, wait=1, on_debug=False):
                     print(f"\n{type(e).__name__}\n{e}")
                 time.sleep(wait)
         return func(*args, **kwargs)
+
+    return new_func
+
+
+def random_intervals(len_, sum_min, sum_max, min_):
+    sequence = [random.uniform(min_, sum_max / len_) for _ in range(len_)]
+    while sum(sequence) < sum_min:
+        index = random.randint(0, len_ - 1)
+        sequence[index] += 0.01
+    return sequence
+
+
+def class_exc_waiting(func, seconds_attr="_next_interval"):
+    def new_func(self, *args, **kwargs):
+        start = time.time()
+        res = func(*args, **kwargs)
+        seconds = getattr(self, seconds_attr)
+        while time.time() - start < seconds:
+            pass
+        return res
 
     return new_func

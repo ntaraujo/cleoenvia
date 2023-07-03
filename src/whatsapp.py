@@ -9,7 +9,13 @@ from webdriver_manager.microsoft import EdgeChromiumDriverManager
 import os
 import pickle
 from io import BytesIO
-from utils import send_to_clipboard, cache_dir, retry
+from utils import (
+    send_to_clipboard,
+    cache_dir,
+    retry,
+    random_intervals,
+    class_exc_waiting,
+)
 from PIL import Image
 
 os.environ["WDM_SSL_VERIFY"] = "false"
@@ -22,7 +28,24 @@ cookies_file = os.path.join(cache_dir, "cookies.pkl")
 class WhatsApp:
     def __init__(self):
         self.image_data = None
-        self.driver
+        self.driver = None
+        self.interval_config = {
+            "steps": 6,
+            "min_seconds": 6,
+            "max_seconds": 8,
+            "min_seconds_step": 1,
+        }
+        self._interval_generator = iter([])
+
+    @property
+    def _next_interval(self):
+        res = next(self._interval_generator, None)
+        if res is None:
+            self._interval_generator = iter(
+                random_intervals(self.interval_config.values())
+            )
+            res = next(self._interval_generator)
+        return res
 
     def set_image_data(self, path):
         image = Image.open(path)
@@ -78,11 +101,13 @@ class WhatsApp:
         element.click()
         return element
 
+    @class_exc_waiting
     @retry
     def search_enter(self):
         xpath_search_enter = r'//*[@id="side"]/div[1]/div/div/div[2]'
         self.find_and_click(xpath_search_enter)
 
+    @class_exc_waiting
     @retry
     def search_input(self, text):
         xpath_search_input = r'//*[@id="side"]/div[1]/div/div/div[2]/div/div[1]/p'
@@ -90,6 +115,7 @@ class WhatsApp:
         self.actions.send_keys_to_element(element_search_input, text)
         self.actions.perform()
 
+    @class_exc_waiting
     @retry
     def enter_contact(self, name):
         xpath_contact_result_title = (
@@ -104,6 +130,7 @@ class WhatsApp:
             (EC.text_to_be_present_in_element, (name,), {}),
         )
 
+    @class_exc_waiting
     @retry
     def paste_image(self):
         xpath_input_message_only = (
@@ -116,6 +143,7 @@ class WhatsApp:
 
         element_input_message_only.send_keys(Keys.CONTROL, "v")
 
+    @class_exc_waiting
     @retry
     def paste_image_description(self, text):
         xpath_input_image_description = r'//*[@id="app"]/div/div/div[3]/div[2]/span/div/span/div/div/div[2]/div/div[1]/div[3]/div/div/div[2]/div[1]/div[1]/p'
@@ -126,6 +154,7 @@ class WhatsApp:
 
         element_input_image_description.send_keys(Keys.CONTROL, "v")
 
+    @class_exc_waiting
     @retry
     def send(self):
         xpath_send_button = r'//*[@id="app"]/div/div/div[3]/div[2]/span/div/span/div/div/div[2]/div/div[2]/div[2]/div/div'
