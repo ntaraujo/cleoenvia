@@ -15,14 +15,14 @@ from utils import (
     retry,
     random_intervals,
     class_exc_waiting,
+    save_cache,
+    load_cache,
 )
 from PIL import Image
 
 os.environ["WDM_SSL_VERIFY"] = "false"
 
 selenium_folder = os.path.join(cache_dir, "selenium")
-
-cookies_file = os.path.join(cache_dir, "cookies.pkl")
 
 
 class WhatsApp:
@@ -42,7 +42,7 @@ class WhatsApp:
         res = next(self._interval_generator, None)
         if res is None:
             self._interval_generator = iter(
-                random_intervals(self.interval_config.values())
+                random_intervals(*self.interval_config.values())
             )
             res = next(self._interval_generator)
         return res
@@ -69,15 +69,18 @@ class WhatsApp:
             service=EdgeService(EdgeChromiumDriverManager().install()), options=options
         )
 
-        if os.path.exists(cookies_file):
-            with open(cookies_file, "rb") as f:
-                cookies = pickle.load(f)
-                for cookie in cookies:
-                    self.driver.add_cookie(cookie)
+        cookies = load_cache("cookies", None)
+        if cookies is not None:
+            for cookie in cookies:
+                self.driver.add_cookie(cookie)
 
         self.driver.get("https://web.whatsapp.com")
 
         self.actions = ActionChains(self.driver)
+
+    def stop(self):
+        save_cache("cookies", self.driver.get_cookies())
+        self.driver.quit()
 
     def check(self, xpath, operator=None, *other_conditions):
         return (
@@ -100,6 +103,15 @@ class WhatsApp:
         element = self.check(xpath, operator, *other_conditions)
         element.click()
         return element
+
+    def do_all_send_image(self, name, phone, text=None):
+        self.search_enter()
+        self.search_input(phone)
+        self.enter_contact(name)
+        self.paste_image()
+        if text is not None:
+            self.paste_image_description(text)
+        self.send()  # for debug
 
     @class_exc_waiting
     @retry
@@ -139,7 +151,7 @@ class WhatsApp:
 
         element_input_message_only = self.check(xpath_input_message_only)
 
-        send_to_clipboard(self.image, "image")
+        send_to_clipboard(self.image_data, "image")
 
         element_input_message_only.send_keys(Keys.CONTROL, "v")
 
