@@ -44,9 +44,6 @@ config_dir = appdirs.user_config_dir("cleoenvia")
 config_path = os.path.join(config_dir, "config.pkl")
 
 
-cache_dir = appdirs.user_cache_dir("cleoenvia")
-
-
 def save_config(config):
     os.makedirs(config_dir, exist_ok=True)
     with open(config_path, "wb") as f:
@@ -59,6 +56,22 @@ def load_config():
             with open(config_path, "rb") as f:
                 return pickle.load(f)
     return defaultdict(str)
+
+
+cache_dir = appdirs.user_cache_dir("cleoenvia")
+
+
+def save_cache(name, data):
+    with open(os.path.join(cache_dir, f"{name}.pkl"), "wb") as f:
+        pickle.dump(data, f)
+
+
+def load_cache(file_name, default):
+    cache_path = os.path.join(cache_dir, file_name)
+    if not os.path.exists(cache_path):
+        return default
+    with open(cache_path, "rb") as f:
+        return pickle.load(f)
 
 
 compiled = getattr(sys, "frozen", False)
@@ -88,15 +101,15 @@ def new_print(*values, **kwargs):
 builtins.print = new_print
 
 
-def send_to_clipboard(data, clip_type=None):
+def send_to_clipboard(data, clip_type="text"):
     win32clipboard.OpenClipboard()
     win32clipboard.EmptyClipboard()
-    if clip_type is None:
-        win32clipboard.SetClipboardText(data)
+    
+    if clip_type == "text":
+        clip_type = win32clipboard.CF_UNICODETEXT
     elif clip_type == "image":
-        win32clipboard.SetClipboardData(clip_type, data)
-    else:
-        raise NotImplementedError(f"clip_type {clip_type} not implemented")
+        clip_type = win32clipboard.CF_DIB
+    win32clipboard.SetClipboardData(clip_type, data)
     win32clipboard.CloseClipboard()
 
 
@@ -134,7 +147,7 @@ def random_intervals(len_, sum_min, sum_max, min_):
 def class_exc_waiting(func, seconds_attr="_next_interval"):
     def new_func(self, *args, **kwargs):
         start = time.time()
-        res = func(*args, **kwargs)
+        res = func(self, *args, **kwargs)
         seconds = getattr(self, seconds_attr)
         while time.time() - start < seconds:
             pass
