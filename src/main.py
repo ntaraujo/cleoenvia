@@ -138,7 +138,7 @@ def main():
             failed_contact_phones.add(phone)
             save_cache("failed_contact_phones", failed_contact_phones)
             print(
-                f"Não foi possível enviar a mensagem para '{name}' através do número ({phone})"
+                f"Não foi possível enviar a mensagem para '{name}' através do número ({phone}) por conta do erro ({e})"
             )
             # raise e  # for debug
         finally:
