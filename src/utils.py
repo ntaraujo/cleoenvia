@@ -14,21 +14,6 @@ _current_progress = 0
 _total_progress = 0
 
 
-def progress_for(func, total_progress=None):
-    if total_progress is not None:
-        global _total_progress
-        _total_progress += total_progress
-
-    def new_func(*args, **kwargs):
-        res = func(*args, **kwargs)
-        global _current_progress
-        _current_progress += 1
-        print(f"Progress: {_current_progress}/{_total_progress}")
-        return res
-
-    return new_func
-
-
 def add_total(total_progress):
     global _total_progress
     _total_progress += total_progress
@@ -38,6 +23,18 @@ def add_progress(progress=1):
     global _current_progress
     _current_progress += progress
     print(f"Progress: {_current_progress}/{_total_progress}")
+
+
+def progress_for(func, total_progress=None):
+    if total_progress is not None:
+        add_total(total_progress)
+
+    def new_func(*args, **kwargs):
+        res = func(*args, **kwargs)
+        add_progress()
+        return res
+
+    return new_func
 
 
 config_dir = appdirs.user_config_dir("cleoenvia")
