@@ -1,6 +1,13 @@
 from gooey import Gooey, GooeyParser, local_resource_path
 import signal
-from utils import save_config, load_config, save_cache, load_cache
+from utils import (
+    save_config,
+    load_config,
+    save_cache,
+    load_cache,
+    add_total,
+    add_progress,
+)
 from mega_bazar import valid_contacts
 from whatsapp import WhatsApp
 
@@ -86,6 +93,7 @@ def main():
         print(
             "Os seguintes contatos tiveram mensagens enviadas na última execução e não serão considerados nesta: ",
             " ".join(sent_contact_names),
+            # TODO put commas
         )
 
     failed_contact_phones = load_cache("failed_contact_phones", set())
@@ -94,30 +102,43 @@ def main():
         print(
             "Os seguintes números falharam em alguma execução e serão considerados novamente: ",
             " ".join(failed_contact_phones),
+            # TODO put commas
         )
+        # TODO reinitialize cache
 
-    for contact in contacts:
-        name = contact["name"]
-        if not continuation or name not in sent_contact_names:
-            for phone in contact["phones"]:
-                if try_wrong or phone not in failed_contact_phones:
-                    print(f"Enviando para '{name}' ({phone})")
-                    try:
-                        wpp.do_all_send_image(name, phone, args.Texto)
-                        sent_contact_names.add(name)
-                        save_cache("sent_contact_names", sent_contact_names)
-                        print(
-                            f"Mensagem enviada para '{name}' através do número ({phone})"
-                        )
-                        break
-                    except Exception as e:
-                        failed_contact_phones.add(phone)
-                        save_cache("failed_contact_phones", failed_contact_phones)
-                        print(
-                            f"Não foi possível enviar a mensagem para '{name}' através do número ({phone})"
-                        )
-                        # raise e  # for debug
+    print("Calculando total de mensagens a serem enviadas...")
+    planned_recipients = [
+        (name, phone)
+        for contact in contacts
+        for phone in contact["phones"]
+        if (continuation or (name := contact["name"]) not in sent_contact_names)
+        and (try_wrong or phone not in failed_contact_phones)
+    ]
 
+    add_total(len(planned_recipients))
+
+    for name, phone in planned_recipients:
+        if name in sent_contact_names:
+            add_progress()
+            continue
+
+        print(f"Enviando para '{name}' ({phone})")
+        try:
+            wpp.do_all_send_image(name, phone, args.Texto)
+            sent_contact_names.add(name)
+            save_cache("sent_contact_names", sent_contact_names)
+            print(f"Mensagem enviada para '{name}' através do número ({phone})")
+        except Exception as e:
+            failed_contact_phones.add(phone)
+            save_cache("failed_contact_phones", failed_contact_phones)
+            print(
+                f"Não foi possível enviar a mensagem para '{name}' através do número ({phone})"
+            )
+            # raise e  # for debug
+        finally:
+            add_progress()
+
+    # TODO change where it is reinitialized
     save_cache("sent_contact_names", set())
     wpp.stop()
 
