@@ -95,6 +95,9 @@ def main():
             ", ".join(sent_contact_names),
             ")",
         )
+    else:
+        sent_contact_names = set()
+        save_cache("sent_contact_names", sent_contact_names)
 
     failed_contact_phones = load_cache("failed_contact_phones", set())
     try_wrong = args.TentarErrados == "Sim"
@@ -104,15 +107,16 @@ def main():
             ", ".join(failed_contact_phones),
             ")",
         )
-        # TODO reinitialize cache
+        failed_contact_phones = set()
+        save_cache("failed_contact_phones", failed_contact_phones)
 
     print("Calculando total de mensagens a serem enviadas...")
     planned_recipients = [
         (name, phone)
         for contact in contacts
         for phone in contact["phones"]
-        if (continuation or (name := contact["name"]) not in sent_contact_names)
-        and (try_wrong or phone not in failed_contact_phones)
+        if (name := contact["name"]) not in sent_contact_names
+        and phone not in failed_contact_phones
     ]
 
     add_total(len(planned_recipients))
@@ -138,8 +142,6 @@ def main():
         finally:
             add_progress()
 
-    # TODO change where it is reinitialized
-    save_cache("sent_contact_names", set())
     wpp.stop()
 
 
