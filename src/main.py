@@ -70,8 +70,10 @@ def main():
 
     save_config(config)
 
+    print("Identificando contatos válidos...")
     contacts = valid_contacts(args.ArquivoContatos)
 
+    print("Abrindo o WhatsApp...")
     wpp = WhatsApp()
 
     wpp.start()
@@ -104,6 +106,10 @@ def main():
                         wpp.do_all_send_image(name, phone, args.Texto)
                         sent_contact_names.add(name)
                         save_cache("sent_contact_names", sent_contact_names)
+                        print(
+                            f"Mensagem enviada para '{name}' através do número ({phone})"
+                        )
+                        break
                     except Exception as e:
                         failed_contact_phones.add(phone)
                         save_cache("failed_contact_phones", failed_contact_phones)
