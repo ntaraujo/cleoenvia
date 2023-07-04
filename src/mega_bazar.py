@@ -38,13 +38,14 @@ def valid_contacts(contacts_file):
             if row["Family Name"]:
                 name += " " + row["Family Name"]
 
-            # TODO remove duplicates from phones
-            phones = [
-                sub("[^0-9]", "", num)
-                for key in phone_keys
-                if (phone_string := row[key])
-                for num in phone_string.split(" ::: ")
-            ]
+            phones = list(
+                {
+                    sub("[^0-9]", "", num)
+                    for key in phone_keys
+                    if (phone_string := row[key])
+                    for num in phone_string.split(" ::: ")
+                }
+            )
 
             if name and phones:
                 first_name, allow = filter_names(name)
