@@ -99,6 +99,23 @@ class WhatsApp:
             )[0]
         )
 
+    def check_absense(self, xpath, operator=None, *other_conditions):
+        return (
+            WebDriverWait(self.driver, 15).until_not(
+                EC.element_to_be_clickable((By.XPATH, xpath))
+            )
+            if operator is None
+            else WebDriverWait(self.driver, 15).until_not(
+                operator(
+                    EC.element_to_be_clickable((By.XPATH, xpath)),
+                    *[
+                        condition((By.XPATH, xpath), *args, **kwargs)
+                        for condition, args, kwargs in other_conditions
+                    ],
+                )
+            )[0]
+        )
+
     def find_and_click(self, xpath, operator=None, *other_conditions):
         element = self.check(xpath, operator, *other_conditions)
         element.click()
@@ -191,4 +208,4 @@ class WhatsApp:
 
         self.find_and_click(xpath_send_button)
 
-        self.check(xpath_send_button)
+        self.check_absense(xpath_send_button)
