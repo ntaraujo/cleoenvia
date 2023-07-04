@@ -91,18 +91,18 @@ def main():
     continuation = args.Continuação == "Sim"
     if continuation:
         print(
-            "Os seguintes contatos tiveram mensagens enviadas na última execução e não serão considerados nesta: ",
-            " ".join(sent_contact_names),
-            # TODO put commas
+            "Os seguintes contatos tiveram mensagens enviadas na última execução e não serão considerados nesta: (",
+            ", ".join(sent_contact_names),
+            ")",
         )
 
     failed_contact_phones = load_cache("failed_contact_phones", set())
     try_wrong = args.TentarErrados == "Sim"
     if try_wrong:
         print(
-            "Os seguintes números falharam em alguma execução e serão considerados novamente: ",
-            " ".join(failed_contact_phones),
-            # TODO put commas
+            "Os seguintes números falharam em alguma execução e serão considerados novamente: (",
+            ", ".join(failed_contact_phones),
+            ")",
         )
         # TODO reinitialize cache
 
