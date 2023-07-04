@@ -52,9 +52,9 @@ def main():
     # TODO workaround for emoji in the end getting lost
     parser.add_argument(
         "Texto",
-        widget="Textarea",
+        widget="FileChooser",
         default=config["Texto"],
-        help="O texto que você deseja enviar como descrição da imagem",
+        help="O arquivo com o texto que você deseja enviar como descrição da imagem",
         gooey_options={"full_width": True},
     )
     parser.add_argument(
@@ -86,6 +86,8 @@ def main():
     wpp.start()
 
     wpp.set_image_data(args.Imagem)
+    with open(args.Texto, "r", encoding="utf-8") as f:
+        text = f.read()
 
     sent_contact_names = load_cache("sent_contact_names", set())
     continuation = args.Continuação == "Sim"
@@ -128,7 +130,7 @@ def main():
 
         print(f"Enviando para '{name}' ({phone})")
         try:
-            wpp.do_all_send_image(name, phone, args.Texto)
+            wpp.do_all_send_image(name, phone, text)
             sent_contact_names.add(name)
             save_cache("sent_contact_names", sent_contact_names)
             print(f"Mensagem enviada para '{name}' através do número ({phone})")
