@@ -123,6 +123,7 @@ def main():
 
     add_total(len(planned_recipients))
 
+    # TODO prevent windows sleep
     for name, phone in planned_recipients:
         if name in sent_contact_names:
             add_progress()
