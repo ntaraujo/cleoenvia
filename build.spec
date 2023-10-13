@@ -32,7 +32,7 @@ exe = EXE(
     a.datas,
     [],
     name="Cleo Envia",
-    debug=True,
+    debug=False,
     strip=False,
     upx=True,
     upx_exclude=[],
