@@ -93,6 +93,7 @@ def new_print(*values, **kwargs):
         kwargs["sep"] = kwargs["sep"].encode("ascii", "replace").decode()
     if "end" in kwargs:
         kwargs["end"] = kwargs["end"].encode("ascii", "replace").decode()
+    kwargs["flush"] = True
 
     old_print(*new_values, **kwargs)
 
