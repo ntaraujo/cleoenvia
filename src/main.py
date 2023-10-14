@@ -8,7 +8,7 @@ from utils import (
     add_total,
     add_progress,
 )
-from mega_bazar import valid_contacts
+from contacts import filtered_contacts, valid_contacts
 from whatsapp import WhatsApp
 import time
 
@@ -45,6 +45,12 @@ def main():
         help="Arquivo CSV com os contatos do Google",
     )
     parser.add_argument(
+        "Incluir",
+        widget="FileChooser",
+        default=config["Incluir"],
+        help="Arquivo com os nomes que você deseja incluir, separados por linha",
+    )
+    parser.add_argument(
         "Imagem",
         widget="FileChooser",
         default=config["Imagem"],
@@ -56,7 +62,6 @@ def main():
         widget="FileChooser",
         default=config["Texto"],
         help="O arquivo com o texto que você deseja enviar como descrição da imagem",
-        gooey_options={"full_width": True},
     )
     parser.add_argument(
         "Continuação",
@@ -73,13 +78,17 @@ def main():
     args = parser.parse_args()
 
     config["ArquivoContatos"] = args.ArquivoContatos
+    config["Incluir"] = args.Incluir
     config["Imagem"] = args.Imagem
     config["Texto"] = args.Texto
 
     save_config(config)
 
     print("Identificando contatos válidos...")
-    contacts = valid_contacts(args.ArquivoContatos)
+    if args.Incluir:
+        contacts = filtered_contacts(args.ArquivoContatos, args.Incluir)
+    else:
+        contacts = valid_contacts(args.ArquivoContatos)
 
     print("Abrindo o WhatsApp...")
     wpp = WhatsApp()
