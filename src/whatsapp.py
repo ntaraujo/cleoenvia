@@ -129,7 +129,7 @@ class WhatsApp:
         self.paste_image()
         if text is not None:
             self.paste_image_description(text)
-        self.send()  # for debug
+        self.send(text)  # for debug
 
     @dec_wrapper(retry, class_exc_waiting, times=3, on_debug=True)
     def search_enter(self):
@@ -203,17 +203,22 @@ class WhatsApp:
 
     @class_exc_waiting
     @retry
-    def send(self):
+    def send(self, text):
         xpath_send_button = r'//*[@id="app"]/div/div/div[3]/div[2]/span/div/span/div/div/div[2]/div/div[2]/div[2]/div/div'
 
         self.find_and_click(xpath_send_button)
 
         self.check_absense(xpath_send_button)
 
+        self.check(
+            f'//*[@id="main"]/div[2]/div/div[2]/div[3]//span[contains(text(), "{text}")]'
+        )
+
 
 if __name__ == "__main__":
     import os
     from dotenv import load_dotenv, find_dotenv
+    import time
 
     _ = load_dotenv(find_dotenv())
     _phone = os.environ["CLEO_ENVIA_PHONE"]
@@ -225,4 +230,5 @@ if __name__ == "__main__":
     wpp.start()
     wpp.set_image_data(_image)
     wpp.do_all_send_image(_name, _phone, _text)
+    time.sleep(15)
     wpp.stop()

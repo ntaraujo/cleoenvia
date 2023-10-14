@@ -10,6 +10,7 @@ from utils import (
 )
 from mega_bazar import valid_contacts
 from whatsapp import WhatsApp
+import time
 
 
 @Gooey(
@@ -145,6 +146,7 @@ def main():
         finally:
             add_progress()
 
+    time.sleep(15)
     wpp.stop()
 
 
