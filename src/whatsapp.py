@@ -209,3 +209,19 @@ class WhatsApp:
         self.find_and_click(xpath_send_button)
 
         self.check_absense(xpath_send_button)
+
+
+if __name__ == '__main__':
+    import os
+    from dotenv import load_dotenv, find_dotenv
+    _ = load_dotenv(find_dotenv())
+    _phone = os.environ["CLEO_ENVIA_PHONE"]
+    _name = os.environ["CLEO_ENVIA_NAME"]
+    _image = os.environ["CLEO_ENVIA_IMAGE"]
+    _text = os.environ["CLEO_ENVIA_TEXT"]
+    
+    wpp = WhatsApp()
+    wpp.start()
+    wpp.set_image_data(_image)
+    wpp.do_all_send_image(_name, _phone, _text)
+    wpp.stop()
