@@ -210,10 +210,6 @@ class WhatsApp:
 
         self.check_absense(xpath_send_button)
 
-        self.check(
-            f'//*[@id="main"]/div[2]/div/div[2]/div[3]//span[contains(text(), "{text}")]'
-        )
-
 
 if __name__ == "__main__":
     import os
