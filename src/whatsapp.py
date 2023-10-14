@@ -161,7 +161,7 @@ class WhatsApp:
         )
         self.find_and_click(xpath_contact_result_title)
 
-        xpath_contact_header = r'//*[@id="main"]/header/div[2]/div[1]/div/span[1]'
+        xpath_contact_header = r'//*[@id="main"]/header/div[2]/div/div/div/span'
         self.check(
             xpath_contact_header,
             EC.all_of,
