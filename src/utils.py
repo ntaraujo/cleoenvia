@@ -138,6 +138,20 @@ def retry(func, exc=Exception, times=2, wait=1, on_debug=False):
     return new_func
 
 
+def dec_wrapper(decorator, outside_decorator=None, *dargs, **dkwargs):
+    if outside_decorator is None:
+
+        def wrapper(func):
+            return decorator(func, *dargs, **dkwargs)
+
+    else:
+
+        def wrapper(func):
+            return outside_decorator(decorator(func, *dargs, **dkwargs))
+
+    return wrapper
+
+
 def random_intervals(len_, sum_min, sum_max, min_):
     sequence = [random.uniform(min_, sum_max / len_) for _ in range(len_)]
     while sum(sequence) < sum_min:

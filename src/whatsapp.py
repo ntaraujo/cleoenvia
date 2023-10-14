@@ -13,6 +13,7 @@ from utils import (
     send_to_clipboard,
     cache_dir,
     retry,
+    dec_wrapper,
     random_intervals,
     class_exc_waiting,
     save_cache,
@@ -130,8 +131,7 @@ class WhatsApp:
             self.paste_image_description(text)
         self.send()  # for debug
 
-    @class_exc_waiting
-    @retry
+    @dec_wrapper(retry, class_exc_waiting, times=3, on_debug=True)
     def search_enter(self):
         xpath_search_enter = r'//*[@id="side"]/div[1]/div/div/div[2]'
         self.find_and_click(xpath_search_enter)
@@ -211,15 +211,16 @@ class WhatsApp:
         self.check_absense(xpath_send_button)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import os
     from dotenv import load_dotenv, find_dotenv
+
     _ = load_dotenv(find_dotenv())
     _phone = os.environ["CLEO_ENVIA_PHONE"]
     _name = os.environ["CLEO_ENVIA_NAME"]
     _image = os.environ["CLEO_ENVIA_IMAGE"]
     _text = os.environ["CLEO_ENVIA_TEXT"]
-    
+
     wpp = WhatsApp()
     wpp.start()
     wpp.set_image_data(_image)
