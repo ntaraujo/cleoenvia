@@ -77,6 +77,29 @@ def main():
     )
     args = parser.parse_args()
 
+    from version import version
+    from packaging.version import parse as version_parse
+    import requests
+
+    try:
+        response = requests.get(
+            "https://raw.githubusercontent.com/ntaraujo/cleoenvia/main/public.json",
+            verify=False,
+        )
+        response.raise_for_status()
+        public_data = response.json()
+
+    except Exception as e:
+        print(
+            "Ocorreu um erro ao checar a versão do aplicativo. Por favor verifique se você está conectado à internet, feche o aplicativo e abra-o de novo."
+        )
+        raise e
+
+    if version_parse(version) < version_parse(public_data["min_version"]):
+        raise Exception(  # sourcery skip: raise-specific-error
+            "Essa versão do aplicativo não é mais suportada. Por gentileza, entre em contato com o desenvolvedor para obter a versão mais recente."
+        )
+
     config["ArquivoContatos"] = args.ArquivoContatos
     config["Incluir"] = args.Incluir
     config["Imagem"] = args.Imagem
