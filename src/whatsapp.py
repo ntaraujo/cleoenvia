@@ -26,6 +26,21 @@ os.environ["WDM_SSL_VERIFY"] = "false"
 selenium_folder = os.path.join(cache_dir, "selenium")
 
 
+class xpath:
+    SEARCH_ENTER = r'//*[@id="side"]/div[1]/div/div/div[2]'
+    SEARCH_INPUT = r'//*[@id="side"]/div[1]/div/div/div[2]/div/div[1]/p'
+    F_CONTACT_RESULT_TITLE = (
+        r'//*[@id="pane-side"]/div[1]/div/div//span[@title="{name}"]'
+    )
+    CONTACT_HEADER = r'//*[@id="main"]/header/div[2]/div/div/div/span'
+    INPUT_MESSAGE_ONLY = (
+        r'//*[@id="main"]/footer/div[1]/div/span[2]/div/div[2]/div[1]/div/div[1]/p'
+    )
+    ONE_IMAGE_PREVIEW_CONTAINER = r'//*[@id="app"]/div/div/div[3]/div[2]/span/div/span/div/div/div[2]/div/div[2]/div[1]/div[count(child::*) = 1]'
+    INPUT_IMAGE_DESCRIPTION = r'//*[@id="app"]/div/div/div[3]/div[2]/span/div/span/div/div/div[2]/div/div[1]/div[3]/div/div/div[2]/div[1]/div[1]/p'
+    SEND_BUTTON = r'//*[@id="app"]/div/div/div[3]/div[2]/span/div/span/div/div/div[2]/div/div[2]/div[2]/div/div'
+
+
 class WhatsApp:
     def __init__(self):
         self.image_data = None
@@ -133,20 +148,17 @@ class WhatsApp:
 
     @dec_wrapper(retry, class_exc_waiting, times=3, on_debug=True)
     def search_enter(self):
-        xpath_search_enter = r'//*[@id="side"]/div[1]/div/div/div[2]'
-        self.find_and_click(xpath_search_enter)
+        self.find_and_click(xpath.SEARCH_ENTER)
 
     @class_exc_waiting
     @retry
     def search_input(self, text):
-        xpath_search_input = r'//*[@id="side"]/div[1]/div/div/div[2]/div/div[1]/p'
-
-        element_search_input = self.find_and_click(xpath_search_input)
+        element_search_input = self.find_and_click(xpath.SEARCH_INPUT)
 
         if input_length := len(element_search_input.text):
             self.actions.send_keys(Keys.BACKSPACE * input_length)
             self.actions.perform()
-            element_search_input = self.find_and_click(xpath_search_input)
+            element_search_input = self.find_and_click(xpath.SEARCH_INPUT)
 
         self.actions.send_keys_to_element(element_search_input, text)
         self.actions.perform()
@@ -156,14 +168,10 @@ class WhatsApp:
     @class_exc_waiting
     @retry
     def enter_contact(self, name):
-        xpath_contact_result_title = (
-            f'//*[@id="pane-side"]/div[1]/div/div//span[@title="{name}"]'
-        )
-        self.find_and_click(xpath_contact_result_title)
+        self.find_and_click(xpath.F_CONTACT_RESULT_TITLE.format(name=name))
 
-        xpath_contact_header = r'//*[@id="main"]/header/div[2]/div/div/div/span'
         self.check(
-            xpath_contact_header,
+            xpath.CONTACT_HEADER,
             EC.all_of,
             (EC.text_to_be_present_in_element, (name,), {}),
         )
@@ -171,31 +179,23 @@ class WhatsApp:
     @class_exc_waiting
     @retry
     def paste_image(self):
-        xpath_input_message_only = (
-            r'//*[@id="main"]/footer/div[1]/div/span[2]/div/div[2]/div[1]/div/div[1]/p'
-        )
-
-        element_input_message_only = self.check(xpath_input_message_only)
+        element_input_message_only = self.check(xpath.INPUT_MESSAGE_ONLY)
 
         send_to_clipboard(self.image_data, "image")
 
         element_input_message_only.send_keys(Keys.CONTROL, "v")
 
-        xpath_one_image_preview_container = r'//*[@id="app"]/div/div/div[3]/div[2]/span/div/span/div/div/div[2]/div/div[2]/div[1]/div[count(child::*) = 1]'
-
-        self.check(xpath_one_image_preview_container)
+        self.check(xpath.ONE_IMAGE_PREVIEW_CONTAINER)
 
     @class_exc_waiting
     @retry
     def paste_image_description(self, text):
-        xpath_input_image_description = r'//*[@id="app"]/div/div/div[3]/div[2]/span/div/span/div/div/div[2]/div/div[1]/div[3]/div/div/div[2]/div[1]/div[1]/p'
-
-        element_input_image_description = self.check(xpath_input_image_description)
+        element_input_image_description = self.check(xpath.INPUT_IMAGE_DESCRIPTION)
 
         if input_length := len(element_input_image_description.text):
             self.actions.send_keys(Keys.BACKSPACE * input_length)
             self.actions.perform()
-            element_input_image_description = self.check(xpath_input_image_description)
+            element_input_image_description = self.check(xpath.INPUT_IMAGE_DESCRIPTION)
 
         send_to_clipboard(text)
 
@@ -204,11 +204,9 @@ class WhatsApp:
     @class_exc_waiting
     @retry
     def send(self, text):
-        xpath_send_button = r'//*[@id="app"]/div/div/div[3]/div[2]/span/div/span/div/div/div[2]/div/div[2]/div[2]/div/div'
+        self.find_and_click(xpath.SEND_BUTTON)
 
-        self.find_and_click(xpath_send_button)
-
-        self.check_absense(xpath_send_button)
+        self.check_absense(xpath.SEND_BUTTON)
 
 
 if __name__ == "__main__":
