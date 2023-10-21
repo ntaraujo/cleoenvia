@@ -7,7 +7,6 @@ from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.keys import Keys
 from webdriver_manager.microsoft import EdgeChromiumDriverManager
 import os
-import pickle
 from io import BytesIO
 from utils import (
     send_to_clipboard,
