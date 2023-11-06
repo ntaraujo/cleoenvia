@@ -36,7 +36,7 @@ class xpath:
         r'//*[@id="main"]/footer/div[1]/div/span[2]/div/div[2]/div[1]/div/div[1]/p'
     )
     ONE_IMAGE_PREVIEW_CONTAINER = r'//*[@id="app"]/div/div/div[3]/div[2]/span/div/span/div/div/div[2]/div/div[2]/div[1]/div[count(child::*) = 1]'
-    INPUT_IMAGE_DESCRIPTION = r'//*[@id="app"]/div/div/div[3]/div[2]/span/div/span/div/div/div[2]/div/div[1]/div[3]/div/div/div[2]/div[1]/div[1]/p'
+    INPUT_IMAGE_DESCRIPTION = r'//*[@id="app"]/div/div/div[3]/div[2]/span/div/span/div//*/p[contains(@class, "selectable-text") and contains(@class, "copyable-text")]'
     SEND_BUTTON = r'//*[@id="app"]/div/div/div[3]/div[2]/span/div/span/div/div/div[2]/div/div[2]/div[2]/div/div'
 
 
@@ -186,8 +186,7 @@ class WhatsApp:
 
         self.check(xpath.ONE_IMAGE_PREVIEW_CONTAINER)
 
-    @class_exc_waiting
-    @retry
+    @dec_wrapper(retry, class_exc_waiting, times=3, on_debug=True)
     def paste_image_description(self, text):
         element_input_image_description = self.check(xpath.INPUT_IMAGE_DESCRIPTION)
 
