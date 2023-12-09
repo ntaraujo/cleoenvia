@@ -35,9 +35,9 @@ class xpath:
     INPUT_MESSAGE_ONLY = (
         r'//*[@id="main"]/footer/div[1]/div/span[2]/div/div[2]/div[1]/div/div[1]/p'
     )
-    ONE_IMAGE_PREVIEW_CONTAINER = r'//*[@id="app"]/div/div/div[3]/div[2]/span/div/span/div/div/div[2]/div/div[2]/div[1]/div[count(child::*) = 1]'
-    INPUT_IMAGE_DESCRIPTION = r'//*[@id="app"]/div/div/div[3]/div[2]/span/div/span/div//*/p[contains(@class, "selectable-text") and contains(@class, "copyable-text")]'
-    SEND_BUTTON = r'//*[@id="app"]/div/div/div[3]/div[2]/span/div/span/div/div/div[2]/div/div[2]/div[2]/div/div'
+    ONE_IMAGE_PREVIEW_CONTAINER = r'//*[@id="app"]//div/button[@aria-label="Miniatura da imagem" and count(preceding-sibling::*) = 0 and count(following-sibling::*) = 0]'
+    INPUT_IMAGE_DESCRIPTION = r'//*[@id="app"]//div[@title="Digite uma mensagem"]/p[contains(@class, "selectable-text") and contains(@class, "copyable-text")]'
+    SEND_BUTTON = r'//*[@id="app"]//div[@aria-label="Enviar"]/span[@data-icon="send"]'
 
 
 class WhatsApp:
