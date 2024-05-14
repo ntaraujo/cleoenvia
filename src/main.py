@@ -75,6 +75,12 @@ def main():
         default="Não",
         help="Marque esse campo se deseja tentar os números que já falharam alguma vez",
     )
+    parser.add_argument(
+        "VerificaçãoExtra",
+        choices=["Sim", "Não"],
+        default="Não",
+        help="Marque esse campo se deseja verificar se a mensagem foi enviada no último dia, antes de enviar de novo",
+    )
     args = parser.parse_args()
 
     from version import version
@@ -157,6 +163,7 @@ def main():
     add_total(len(planned_recipients))
 
     # TODO prevent windows sleep
+    extra_verification = args.VerificaçãoExtra == "Sim"
     for name, phone in planned_recipients:
         if name in sent_contact_names:
             add_progress()
@@ -164,7 +171,7 @@ def main():
 
         print(f"Enviando para '{name}' ({phone})")
         try:
-            wpp.do_all_send_image(name, phone, text)
+            wpp.do_all_send_image(name, phone, text, extra_verification=extra_verification)
             sent_contact_names.add(name)
             save_cache("sent_contact_names", sent_contact_names)
             print(f"Mensagem enviada para '{name}' através do número ({phone})")

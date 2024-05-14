@@ -19,6 +19,8 @@ from utils import (
     load_cache,
 )
 from PIL import Image
+import re
+from datetime import datetime, timedelta
 
 os.environ["WDM_SSL_VERIFY"] = "false"
 
@@ -38,6 +40,7 @@ class xpath:
     ONE_IMAGE_PREVIEW_CONTAINER = r'//*[@id="app"]//div/button[@aria-label="Miniatura da imagem" and count(preceding-sibling::*) = 0 and count(following-sibling::*) = 0]'
     INPUT_IMAGE_DESCRIPTION = r'//*[@id="app"]//div[@title="Digite uma mensagem"]/p[contains(@class, "selectable-text") and contains(@class, "copyable-text")]'
     SEND_BUTTON = r'//*[@id="app"]//div[@aria-label="Enviar"]/span[@data-icon="send"]'
+    F_MSG_WITH_IMG_DIV = r'//*[@id="main"]//div[contains(@class, "copyable-text") and .//img/@alt="{text}"]'
 
 
 class WhatsApp:
@@ -83,6 +86,8 @@ class WhatsApp:
         self.driver = webdriver.Edge(
             service=EdgeService(EdgeChromiumDriverManager().install()), options=options
         )
+
+        self.driver.get("https://web.whatsapp.com")
 
         cookies = load_cache("cookies", None)
         if cookies is not None:
@@ -136,14 +141,28 @@ class WhatsApp:
         element.click()
         return element
 
-    def do_all_send_image(self, name, phone, text=None):
+    def do_all_send_image(
+        self, name, phone, text=None, minutes_check=5, extra_verification=False
+    ):
         self.search_enter()
         self.search_input(phone)
         self.enter_contact(name)
-        self.paste_image()
-        if text is not None:
-            self.paste_image_description(text)
-        self.send(text)  # for debug
+
+        next_steps = False
+        if extra_verification:
+            try:
+                self.check_last_msg_with_image(text, timedelta(days=14))
+            except Exception as e:
+                next_steps = True
+        else:
+            next_steps = True
+
+        if next_steps:
+            self.paste_image()
+            if text is not None:
+                self.paste_image_description(text)
+            self.send(text)  # for debug
+            retry(self.check_last_msg_with_image)(text, timedelta(minutes=minutes_check))
 
     @dec_wrapper(retry, class_exc_waiting, times=3, on_debug=True)
     def search_enter(self):
@@ -204,7 +223,22 @@ class WhatsApp:
     def send(self, text):
         self.find_and_click(xpath.SEND_BUTTON)
 
-        self.check_absense(xpath.SEND_BUTTON)
+
+    def check_last_msg_with_image(self, text, _timedelta):
+        f_msg_with_img_div = xpath.F_MSG_WITH_IMG_DIV.format(text=text)
+        self.check(f_msg_with_img_div)
+        msgs = self.driver.find_elements(By.XPATH, f_msg_with_img_div)
+
+        for msg in msgs:
+            if match := re.search(
+                r"\[(\d{2}:\d{2}, \d{2}/\d{2}/\d{4})\]",
+                msg.get_attribute("data-pre-plain-text"),
+            ):
+                msg_datetime = datetime.strptime(match[1], r"%H:%M, %d/%m/%Y")
+                if datetime.now() - msg_datetime < _timedelta:
+                    return msg
+            # sourcery skip: raise-specific-error
+            raise Exception("Image and description not sent")
 
 
 if __name__ == "__main__":
@@ -221,6 +255,6 @@ if __name__ == "__main__":
     wpp = WhatsApp()
     wpp.start()
     wpp.set_image_data(_image)
-    wpp.do_all_send_image(_name, _phone, _text)
+    wpp.do_all_send_image(_name, _phone, _text, extra_verification=True)
     time.sleep(15)
     wpp.stop()
